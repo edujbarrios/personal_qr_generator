@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Códigos QR</title>
+    <meta name="description" content="Genera códigos QR a partir de texto, enlaces o imágenes.">
+    <meta name="keywords" content="Código QR, Generador, JavaScript">
+    <meta name="author" content="edujbarrios">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .highlight {
+            color: red;
+            font-weight: bold;
+        }
+        .color-input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+        .color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-input::-webkit-color-swatch {
+            border: none;
+        }
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 0;
+            font-size: 14px;
+            box-shadow: 0px -1px 5px rgba(0, 0, 0, 0.1);
+        }
+        .footer a {
+            margin-left: 4px;
+            color: #3b82f6;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .header {
+            background: linear-gradient(90deg, rgba(29,78,216,1) 0%, rgba(59,130,246,1) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 1.25rem;
+        }
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+        .button-blue {
+            background-color: #3b82f6;
+        }
+        .button-blue:hover {
+            background-color: #2563eb;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .button-red {
+            background-color: #ef4444;
+        }
+        .button-red:hover {
+            background-color: #dc2626;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .qr-container {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            max-width: 640px;
+            margin: auto;
+            padding: 0 16px;
+        }
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-200 dark:bg-gray-800 p-4 sm:p-10 transition duration-500">
+    <div class="container">
+        <div class="header">
+            <h1>Generador de Códigos QR</h1>
+            <p>Genera códigos QR a partir de texto, enlaces o imágenes. Personaliza el color, el tamaño y más.</p>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6">
+            <div class="flex-1">
+                <div class="mb-4">
+                    <label for="inputType" class="block mb-2 font-semibold">Selecciona el Tipo de Entrada:</label>
+                    <select id="inputType" class="px-4 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="text">Texto</option>
+                        <option value="url">Enlace</option>
+                        <option value="image">Imagen</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        id="inputValue"
+                        placeholder="Ingresa el texto o enlace"
+                        class="px-4 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onclick="event.stopPropagation();"
+                        onkeydown="if (event.keyCode === 13) generateQRCode();"
+                    />
+                    <input
+                        type="file"
+                        id="inputFile"
+                        accept="image/*"
+                        class="px-4 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        style="display: none;"
+                        onchange="generateQRCode();"
+                    />
+                </div>
+                <div class="mb-4">
+                    <label for="colorPicker" class="block mb-2 font-semibold">Selecciona el Color del QR:</label>
+                    <input type="color" id="colorPicker" class="color-input relative" value="#000000">
+                </div>
+                <div class="mb-4">
+                    <label for="bgColorPicker" class="block mb-2 font-semibold">Selecciona el Color de Fondo:</label>
+                    <input type="color" id="bgColorPicker" class="color-input relative" value="#ffffff">
+                </div>
+                <div class="mb-4">
+                    <label for="sizePicker" class="block mb-2 font-semibold">Selecciona el Tamaño del QR:</label>
+                    <input type="number" id="sizePicker" class="px-4 py-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" value="200" min="100" max="1000">
+                </div>
+                <div class="mb-4 flex space-x-4">
+                    <button onclick="generateQRCode()" class="button button-blue flex-1"><i class="fas fa-qrcode"></i> Generar Código QR</button>
+                    <button onclick="resetQRCode()" class="button button-red flex-1"><i class="fas fa-redo"></i> Reiniciar</button>
+                </div>
+                <div id="qr-code-container" class="qr-container mb-4"></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <span>Hecho por <a href="https://github.com/edujbarrios" target="_blank">edujbarrios</a>.</span>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="uiUpdater.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
